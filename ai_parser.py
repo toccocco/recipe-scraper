@@ -87,8 +87,15 @@ JSONのみを出力してください。説明文は不要です。
             
             return recipe_data
             
+        except json.JSONDecodeError as e:
+            print(f"JSON解析エラー: {e}")
+            print(f"AI応答内容: {content}")
+            return None
         except Exception as e:
             print(f"AI解析エラー: {e}")
+            print(f"エラータイプ: {type(e)}")
+            import traceback
+            print(f"詳細: {traceback.format_exc()}")
             return None
 
 
