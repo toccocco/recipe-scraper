@@ -1,0 +1,10 @@
+instaloader==4.11
+openai==1.12.0
+anthropic>=0.39.0
+python-dotenv==1.0.1
+playwright==1.48.0
+beautifulsoup4==4.12.3
+fastapi==0.115.0
+uvicorn==0.32.0
+streamlit==1.40.0
+pandas==2.2.3
