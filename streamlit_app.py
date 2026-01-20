@@ -186,6 +186,24 @@ with tab1:
                 # 材料編集
                 st.write("**材料**")
                 ingredients = recipe_data.get('ingredients', [])
+                
+                # 防御的コード: ingredientsの型チェックと修正
+                if ingredients is None:
+                    ingredients = []
+                    st.warning("材料（ingredients）が取得できませんでした。URLや抽出処理を確認してください。")
+                elif not isinstance(ingredients, (list, tuple)):
+                    st.warning(f"材料データの形式が不正です（型: {type(ingredients)}）。リスト形式に変換します。")
+                    try:
+                        ingredients = list(ingredients) if hasattr(ingredients, '__iter__') else []
+                    except:
+                        ingredients = []
+                        st.error("材料データの変換に失敗しました。")
+                
+                # デバッグ情報（問題解決後は削除可能）
+                st.write("🔧 デバッグ情報:")
+                st.write("ingredients type:", type(ingredients))
+                st.write("ingredients value:", ingredients)
+                
                 edited_ingredients = []
                 for i, ingredient in enumerate(ingredients):
                     edited_ingredient = st.text_input(f"材料 {i+1}", value=ingredient, key=f"ingredient_{i}")
