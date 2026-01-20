@@ -44,22 +44,14 @@ tab1, tab2, tab3 = st.tabs(["レシピ抽出", "保存済みレシピ", "デバ�
 with tab1:
     st.header("Instagram URLからレシピを抽出")
     
-    # URL入力とクリアボタン
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        instagram_url = st.text_input(
-            "Instagram投稿のURLを入力してください",
-            value=st.session_state.url_input,
-            placeholder="https://www.instagram.com/p/...",
-            help="Instagram投稿のURLを貼り付けてください",
-            key="url_input_field"
-        )
-    with col2:
-        if st.button("クリア", use_container_width=True):
-            st.session_state.url_input = ""
-            st.session_state.extracted_recipe = None
-            st.session_state.post_data = None
-            st.rerun()
+    # URL入力
+    instagram_url = st.text_input(
+        "Instagram投稿のURLを入力してください",
+        value=st.session_state.url_input,
+        placeholder="https://www.instagram.com/p/...",
+        help="Instagram投稿のURLを貼り付けてください",
+        key="url_input_field"
+    )
     
     # URLが変更された場合、セッション状態を更新
     if instagram_url != st.session_state.url_input:
@@ -67,8 +59,16 @@ with tab1:
         st.session_state.extracted_recipe = None
         st.session_state.post_data = None
     
-    # 抽出ボタン
-    extract_button = st.button("レシピを抽出", type="primary", use_container_width=True)
+    # ボタン配置（抽出ボタンを上に、クリアボタンを下に）
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        extract_button = st.button("レシピを抽出", type="primary", use_container_width=True)
+    with col2:
+        if st.button("クリア", use_container_width=True):
+            st.session_state.url_input = ""
+            st.session_state.extracted_recipe = None
+            st.session_state.post_data = None
+            st.rerun()
     
     if extract_button:
         if not instagram_url:
@@ -105,7 +105,15 @@ with tab1:
                 if not recipe_data:
                     st.error("レシピ情報の抽出に失敗しました")
                     st.warning("トラブルシューティング: サイドバーの「AI解析テスト」を試してください")
-                    st.stop()
+                    
+                    # 取得したキャプションを表示（デバッグ用）
+                    with st.expander("取得した投稿内容を確認", expanded=False):
+                        st.text_area("キャプション", post_data['caption'], height=200)
+                        st.write("この内容にレシピが含まれているか確認してください")
+                    
+                    progress_bar.empty()
+                    status_text.empty()
+                    return  # ここで処理を終了
                 
                 st.session_state.extracted_recipe = recipe_data
                 
@@ -122,9 +130,14 @@ with tab1:
                 
             except Exception as e:
                 st.error(f"エラーが発生しました: {str(e)}")
-            finally:
+                
+                # エラーの詳細を表示（デバッグ用）
+                with st.expander("エラー詳細", expanded=False):
+                    st.code(traceback.format_exc())
+                
                 progress_bar.empty()
                 status_text.empty()
+                return  # エラー時は処理を終了
     
     # 抽出結果の表示と編集機能
     if st.session_state.extracted_recipe and st.session_state.post_data:
