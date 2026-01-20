@@ -1,8 +1,9 @@
 """
-Playwright を使ったInstagramスクレイパー（より安定）
+Playwright を使ったInstagramスクレイパー（Streamlit Cloud対応）
 """
 import time
 import json
+import os
 from typing import Optional, Dict
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeout
 
@@ -21,7 +22,35 @@ class InstagramScraperPlaywright:
     
     def __enter__(self):
         self.playwright = sync_playwright().start()
-        self.browser = self.playwright.chromium.launch(headless=self.headless)
+        
+        # Streamlit Cloud用の設定
+        browser_args = [
+            '--no-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-gpu',
+            '--disable-features=VizDisplayCompositor'
+        ]
+        
+        # Chromiumの実行可能ファイルパスを設定（Streamlit Cloud用）
+        executable_path = None
+        if os.path.exists('/usr/bin/chromium-browser'):
+            executable_path = '/usr/bin/chromium-browser'
+        elif os.path.exists('/usr/bin/chromium'):
+            executable_path = '/usr/bin/chromium'
+        
+        if executable_path:
+            self.browser = self.playwright.chromium.launch(
+                headless=self.headless,
+                executable_path=executable_path,
+                args=browser_args
+            )
+        else:
+            # ローカル環境用
+            self.browser = self.playwright.chromium.launch(
+                headless=self.headless,
+                args=browser_args
+            )
+        
         self.context = self.browser.new_context(
             viewport={'width': 1280, 'height': 720},
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
@@ -162,3 +191,4 @@ if __name__ == "__main__":
             print(f"\nキャプション:\n{post_data['caption'][:300]}...")
         else:
             print("\n❌ 取得失敗")
+
