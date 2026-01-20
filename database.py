@@ -14,28 +14,32 @@ class RecipeDatabase:
     
     def init_database(self):
         """データベースとテーブルを初期化"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS recipes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                ingredients TEXT,
-                steps TEXT,
-                cooking_time TEXT,
-                calories TEXT,
-                servings TEXT,
-                category TEXT,
-                source_url TEXT UNIQUE,
-                username TEXT,
-                likes INTEGER,
-                created_at TEXT
-            )
-        """)
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS recipes (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    title TEXT,
+                    ingredients TEXT,
+                    steps TEXT,
+                    cooking_time TEXT,
+                    calories TEXT,
+                    servings TEXT,
+                    category TEXT,
+                    source_url TEXT UNIQUE,
+                    username TEXT,
+                    likes INTEGER,
+                    created_at TEXT
+                )
+            """)
+            
+            conn.commit()
+            conn.close()
+            print(f"データベース初期化完了: {self.db_path}")
+        except Exception as e:
+            print(f"データベース初期化エラー: {e}")
     
     def save_recipe(self, recipe_data: Dict, post_data: Dict) -> bool:
         """レシピを保存"""
@@ -72,31 +76,35 @@ class RecipeDatabase:
     
     def get_all_recipes(self) -> List[Dict]:
         """全レシピを取得"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute("SELECT * FROM recipes ORDER BY created_at DESC")
-        rows = cursor.fetchall()
-        conn.close()
-        
-        recipes = []
-        for row in rows:
-            recipes.append({
-                "id": row[0],
-                "title": row[1],
-                "ingredients": json.loads(row[2]) if row[2] else [],
-                "steps": json.loads(row[3]) if row[3] else [],
-                "cooking_time": row[4],
-                "calories": row[5],
-                "servings": row[6],
-                "category": row[7],
-                "source_url": row[8],
-                "username": row[9],
-                "likes": row[10],
-                "created_at": row[11]
-            })
-        
-        return recipes
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute("SELECT * FROM recipes ORDER BY created_at DESC")
+            rows = cursor.fetchall()
+            conn.close()
+            
+            recipes = []
+            for row in rows:
+                recipes.append({
+                    "id": row[0],
+                    "title": row[1],
+                    "ingredients": json.loads(row[2]) if row[2] else [],
+                    "steps": json.loads(row[3]) if row[3] else [],
+                    "cooking_time": row[4],
+                    "calories": row[5],
+                    "servings": row[6],
+                    "category": row[7],
+                    "source_url": row[8],
+                    "username": row[9],
+                    "likes": row[10],
+                    "created_at": row[11]
+                })
+            
+            return recipes
+        except Exception as e:
+            print(f"レシピ取得エラー: {e}")
+            return []
     
     def search_recipes(self, keyword: str) -> List[Dict]:
         """キーワードでレシピを検索"""
