@@ -1,5 +1,5 @@
 """
-Streamlit版 Instagram レシピ抽出ツール（改善版）
+Streamlit版 Instagram レシピ抽出ツール
 """
 import streamlit as st
 import time
