@@ -23,33 +23,48 @@ class InstagramScraperPlaywright:
     def __enter__(self):
         self.playwright = sync_playwright().start()
         
-        # Streamlit Cloud用の設定
+        # Streamlit Cloud用の設定（新しいヘッドレスモード対応）
         browser_args = [
             '--no-sandbox',
             '--disable-dev-shm-usage',
             '--disable-gpu',
-            '--disable-features=VizDisplayCompositor'
+            '--disable-features=VizDisplayCompositor',
+            '--disable-web-security',
+            '--disable-features=VizDisplayCompositor',
+            '--headless=new'  # 新しいヘッドレスモード
         ]
         
         # Chromiumの実行可能ファイルパスを設定（Streamlit Cloud用）
         executable_path = None
-        if os.path.exists('/usr/bin/chromium-browser'):
-            executable_path = '/usr/bin/chromium-browser'
-        elif os.path.exists('/usr/bin/chromium'):
+        if os.path.exists('/usr/bin/chromium'):
             executable_path = '/usr/bin/chromium'
+        elif os.path.exists('/usr/bin/chromium-browser'):
+            executable_path = '/usr/bin/chromium-browser'
         
-        if executable_path:
-            self.browser = self.playwright.chromium.launch(
-                headless=self.headless,
-                executable_path=executable_path,
-                args=browser_args
-            )
-        else:
-            # ローカル環境用
-            self.browser = self.playwright.chromium.launch(
-                headless=self.headless,
-                args=browser_args
-            )
+        try:
+            if executable_path:
+                self.browser = self.playwright.chromium.launch(
+                    headless=True,  # Playwrightのheadlessパラメータ
+                    executable_path=executable_path,
+                    args=browser_args
+                )
+            else:
+                # ローカル環境用
+                self.browser = self.playwright.chromium.launch(
+                    headless=True,
+                    args=browser_args
+                )
+        except Exception as e:
+            # フォールバック: 最小限の設定で試行
+            print(f"ブラウザ起動エラー、フォールバックモードで再試行: {e}")
+            try:
+                self.browser = self.playwright.chromium.launch(
+                    headless=True,
+                    args=['--no-sandbox', '--disable-dev-shm-usage']
+                )
+            except Exception as e2:
+                print(f"フォールバックも失敗: {e2}")
+                raise e2
         
         self.context = self.browser.new_context(
             viewport={'width': 1280, 'height': 720},
@@ -191,4 +206,3 @@ if __name__ == "__main__":
             print(f"\nキャプション:\n{post_data['caption'][:300]}...")
         else:
             print("\n❌ 取得失敗")
-
